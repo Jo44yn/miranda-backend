@@ -30,5 +30,10 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 # Expose web application port
 EXPOSE 80
 
-# Execute migration steps and start Apache server daemon engine layers
-CMD php artisan config:clear && php artisan migrate --force && apache2-foreground
+# ── CRITICAL FIX ──
+# We dump runtime environment variables directly into Apache's environment file 
+# right before running migrations and starting the foreground server process.
+CMD printenv | grep -E '^APP_|^DB_|^DATABASE_' >> /etc/apache2/envvars && \
+    php artisan config:clear && \
+    php artisan migrate --force && \
+    apache2-foreground
